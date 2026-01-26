@@ -10,10 +10,6 @@ Production-grade static website delivery using AWS S3, CloudFront, Terraform, an
 - Terraform for IaC
 - GitHub Actions for CI/CD
 
-## Environments
-- dev
-- prod
-
 ## CI/CD Flow
 - PR → validate
 - Merge → deploy
