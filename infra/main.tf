@@ -1,9 +1,9 @@
 // Create Bucket for Static Files
 resource "aws_s3_bucket" "static_site" {
   bucket = var.bucket_name
-  tags   = merge(var.tags,
-  {
-    Name = "bucket-prod-static-site"
+  tags = merge(var.tags,
+    {
+      Name = "bucket-prod-static-site"
   })
 }
 
@@ -96,9 +96,9 @@ resource "aws_cloudfront_distribution" "static_dis" {
     cloudfront_default_certificate = true
   }
 
-  tags   = merge(var.tags,
-  {
-    Name = "cdn-prod-static-site"
+  tags = merge(var.tags,
+    {
+      Name = "cdn-prod-static-site"
   })
 }
 

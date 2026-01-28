@@ -1,4 +1,4 @@
-aws_region  = "ap-south-1"
+aws_region = "ap-south-1"
 
 tags = {
   project     = "static-site-ci-cd"
