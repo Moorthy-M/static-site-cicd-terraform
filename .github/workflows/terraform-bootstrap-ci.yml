@@ -1,0 +1,45 @@
+name: Terraform Bootstrap CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths: 
+      - bootstrap/**
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  bootstrap-validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials Using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_CI_ROLE_TO_ASSUME }}
+          aws-region: ap-south-1
+
+      - name: Verify AWS Identity
+        run: aws sts get-caller-identity
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: bootstrap
+
+      - name: Terraform Format
+        run: terraform fmt -check -recursive
+        working-directory: bootstrap
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: bootstrap
+
+      - name: Terraform Plan
+        run: terraform plan -no-color
+        working-directory: bootstrap  
