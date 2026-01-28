@@ -1,9 +1,5 @@
-data "aws_iam_openid_connect_provider" "github" {
-  url = "https://token.actions.githubusercontent.com"
-}
-
-data "aws_s3_bucket" "static_site" {
-  bucket = "s3-moorthy-terraform-state"
+locals {
+  tf_state_bucket_arn = "arn:aws:s3:::s3-moorthy-terraform-state"
 }
 
 data "aws_iam_policy_document" "trust" {
@@ -13,7 +9,7 @@ data "aws_iam_policy_document" "trust" {
 
     principals {
       type        = "Federated"
-      identifiers = [data.aws_iam_openid_connect_provider.github.arn]
+      identifiers = [var.oidc_arn]
     }
 
     actions = ["sts:AssumeRoleWithWebIdentity"]
@@ -39,10 +35,11 @@ data "aws_iam_policy_document" "permission" {
     actions = [
       "s3:GetObject",
       "s3:PutObject",
+      "s3:DeleteObject",
       "s3:ListBucket"
     ]
 
-    resources = [data.aws_s3_bucket.static_site.arn, "${data.aws_s3_bucket.static_site.arn}/*"]
+    resources = [local.tf_state_bucket_arn, "${local.tf_state_bucket_arn}/*"]
   }
 
   statement {
@@ -53,7 +50,7 @@ data "aws_iam_policy_document" "permission" {
 
     condition {
       test     = "StringLike"
-      variable = "s3:bucketname"
+      variable = "s3:bucketName"
       values   = ["static-site-*"]
     }
   }
