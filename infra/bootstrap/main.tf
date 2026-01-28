@@ -67,6 +67,7 @@ data "aws_iam_policy_document" "permission" {
       "s3:PutBucketPublicAccessBlock",
       "s3:PutBucketVersioning",
       "s3:PutEncryptionConfiguration",
+      "s3:GetEncryptionConfiguration",
       "s3:GetBucket*",
       "s3:ListBucket"
     ]
@@ -115,6 +116,12 @@ resource "aws_iam_role" "cd_role" {
   lifecycle {
     prevent_destroy = true
   }
+
+  tags = {
+    Name = "role-static-site-cd"
+    Project = "static-site-cicd-terraform"
+    Environment = "production"
+  }
 }
 
 // Create Permission Policy to Create S3 and CloudFront
@@ -124,6 +131,12 @@ resource "aws_iam_policy" "policy" {
 
   lifecycle {
     prevent_destroy = true
+  }
+
+  tags = {
+    Name = "policy-static-site-cd"
+    Project = "static-site-cicd-terraform"
+    Environment = "production"
   }
 }
 
