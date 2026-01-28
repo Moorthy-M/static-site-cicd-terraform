@@ -118,8 +118,8 @@ resource "aws_iam_role" "cd_role" {
   }
 
   tags = {
-    Name = "role-static-site-cd"
-    Project = "static-site-cicd-terraform"
+    Name        = "role-static-site-cd"
+    Project     = "static-site-cicd-terraform"
     Environment = "production"
   }
 }
@@ -134,8 +134,8 @@ resource "aws_iam_policy" "policy" {
   }
 
   tags = {
-    Name = "policy-static-site-cd"
-    Project = "static-site-cicd-terraform"
+    Name        = "policy-static-site-cd"
+    Project     = "static-site-cicd-terraform"
     Environment = "production"
   }
 }

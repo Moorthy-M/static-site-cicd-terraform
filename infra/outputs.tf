@@ -3,6 +3,6 @@ output "bucket_name" {
 }
 
 output "cloudfront_arn" {
-  value = aws_cloudfront_distribution.static_dis.arn
+  value     = aws_cloudfront_distribution.static_dis.arn
   sensitive = true
 }

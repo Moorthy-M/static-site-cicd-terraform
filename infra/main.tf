@@ -1,7 +1,10 @@
 // Create Bucket for Static Files
 resource "aws_s3_bucket" "static_site" {
   bucket = var.bucket_name
-  tags   = var.tags
+  tags   = merge(var.tags,
+  {
+    Name = "bucket-prod-static-site"
+  })
 }
 
 // Block Public Access
@@ -93,7 +96,10 @@ resource "aws_cloudfront_distribution" "static_dis" {
     cloudfront_default_certificate = true
   }
 
-  tags = var.tags
+  tags   = merge(var.tags,
+  {
+    Name = "cdn-prod-static-site"
+  })
 }
 
 // Create Bucket Policy - Only Allow CDN
