@@ -1,7 +1,7 @@
-aws_region  = "ap-south-1"
-environment = "production"
+aws_region = "ap-south-1"
+
 tags = {
-  project     = "static-site"
+  project     = "static-site-ci-cd"
   environment = "production"
 }
 

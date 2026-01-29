@@ -3,11 +3,6 @@ variable "aws_region" {
   type        = string
 }
 
-variable "environment" {
-  description = "Environment name (dev or prod)"
-  type        = string
-}
-
 variable "bucket_name" {
   description = "S3 bucket name for static site"
   type        = string
