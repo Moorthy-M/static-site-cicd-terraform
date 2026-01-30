@@ -1,0 +1,42 @@
+name: Terraform Bootstrap Credentials
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - bootstrap/**
+
+permissions:
+  id-tokens: write
+  contents: read
+
+env:
+  TF_VAR_oidc_arn: ${{ secrets.AWS_OIDC_PROVIDER_ARN}}
+
+jobs:
+  bootstrap-apply:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_CD_BOOTSTRAP_ROLE }}
+          aws-region: ap-south-1
+
+      - name: Verify AWS Credentials
+        run: aws sts get-caller-identity
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: bootstrap
+
+      - name: Terraform apply
+        run: terraform apply -auto-approve
+        working-directory: bootstrap
+    
