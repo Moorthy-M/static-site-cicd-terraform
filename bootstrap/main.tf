@@ -123,7 +123,7 @@ resource "aws_iam_role" "cd_role" {
 
 // Create Permission Policy to Create S3 and CloudFront
 resource "aws_iam_policy" "policy" {
-  name   = "terraform-static-site-cd-permission-policy"
+  name   = "terraform-cd-static-site-permission-policy"
   policy = data.aws_iam_policy_document.permission.json
 
   lifecycle {
