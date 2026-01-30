@@ -1,4 +1,4 @@
-name: Terraform Bootstrap Credentials
+name: Terraform Bootstrap CD
 
 on:
   push:
