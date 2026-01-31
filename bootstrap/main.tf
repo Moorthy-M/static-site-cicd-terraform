@@ -77,11 +77,7 @@ data "aws_iam_policy_document" "ci_permission" {
     effect = "Allow"
 
     actions = [
-      "s3:GetBucketPolicy",
-      "s3:GetBucketAcl",
-      "s3:GetBucketVersioning",
-      "s3:GetBucketPublicAccessBlock",
-      "s3:GetBucketWebsite",
+      "s3:GetBucket*",
       "s3:ListBucket"
     ]
 
@@ -107,7 +103,7 @@ data "aws_iam_policy_document" "ci_permission" {
 }
 
 // CD Permissions
-data "aws_iam_policy_document" "permission" {
+data "aws_iam_policy_document" "cd_permission" {
   statement {
     sid = "TerraformState"
 
