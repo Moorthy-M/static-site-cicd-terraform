@@ -12,6 +12,7 @@ permissions:
 
 env:
   TF_VAR_oidc_arn: ${{ secrets.AWS_OIDC_PROVIDER_ARN}}
+  TF_VAR_cdn_distribution_id: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
 
 jobs:
   bootstrap-apply:
