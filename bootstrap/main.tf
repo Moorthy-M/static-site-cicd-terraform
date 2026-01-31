@@ -185,40 +185,6 @@ data "aws_iam_policy_document" "cd_permission" {
   }
 }
 
-// Website CD Permission
-data "aws_iam_policy_document" "site_cd_permission" {
-  statement {
-    sid = "AllowBucketToUploadFiles"
-    effect = "Allow"
-
-    actions = [
-      "s3:PutObject",
-      "s3:GetObject",
-      "s3:DeleteObject",
-      "s3:ListBucket"
-    ]
-
-    resources = ["arn:aws:s3:::static-site-cicd-terraform", "arn:aws:s3:::static-site-cicd-terraform/*"]
-  }
-
-  statement {
-    sid = "AllowCloudFrontToInvalidateCache"
-    effect = "Allow"
-
-    actions = [
-      "cloudfront:CreateInvalidation"
-    ]
-
-    condition {
-      test     = "StringEquals"
-      variable = "cloudfront:DistributionId"
-      values = [ var.cdn_distribution_id ]
-    }
-
-    resources = ["*"]
-  }
-}
-
 // Create Role for CI
 resource "aws_iam_role" "ci_role" {
   name               = "terraform-ci-static-site-role"
@@ -293,48 +259,6 @@ resource "aws_iam_policy" "policy" {
 resource "aws_iam_role_policy_attachment" "cd_role" {
   role       = aws_iam_role.cd_role.name
   policy_arn = aws_iam_policy.policy.arn
-
-  lifecycle {
-    prevent_destroy = true
-  }
-}
-
-// Create Website Role for CD
-resource "aws_iam_role" "site_role" {
-  name = "terraform-cd-static-site-files-role"
-  assume_role_policy = data.aws_iam_policy_document.cd_trust.json
-
-  lifecycle {
-    prevent_destroy = true
-  }
-
-  tags = {
-    Name        = "role-static-site-files-cd"
-    Project     = "static-site-cicd-terraform"
-    Environment = "production"
-  }
-}
-
-// Create Permission Policy to Create S3 and CloudFront
-resource "aws_iam_policy" "site_policy" {
-  name   = "terraform-cd-static-site-files-permission-policy"
-  policy = data.aws_iam_policy_document.site_cd_permission.json
-
-  lifecycle {
-    prevent_destroy = true
-  }
-
-  tags = {
-    Name        = "policy-static-site-files-cd"
-    Project     = "static-site-cicd-terraform"
-    Environment = "production"
-  }
-}
-
-// Attach Permission Policy to Role
-resource "aws_iam_role_policy_attachment" "site_role_attach" {
-  role       = aws_iam_role.site_role.name
-  policy_arn = aws_iam_policy.site_policy.arn
 
   lifecycle {
     prevent_destroy = true

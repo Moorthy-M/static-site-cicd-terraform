@@ -13,3 +13,8 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "oidc_arn" {
+  description = "OIDC ARN to Assume Role"
+  type        = string
+}
