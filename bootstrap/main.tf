@@ -2,32 +2,7 @@ locals {
   tf_state_bucket_arn = "arn:aws:s3:::s3-moorthy-terraform-state"
 }
 
-data "aws_iam_policy_document" "cd_trust" {
-  statement {
-    sid    = "TrustPolicyForAssumeRole"
-    effect = "Allow"
-
-    principals {
-      type        = "Federated"
-      identifiers = [var.oidc_arn]
-    }
-
-    actions = ["sts:AssumeRoleWithWebIdentity"]
-
-    condition {
-      test     = "StringEquals"
-      variable = "token.actions.githubusercontent.com:aud"
-      values   = ["sts.amazonaws.com"]
-    }
-
-    condition {
-      test     = "StringLike"
-      variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:Moorthy-M/static-site-cicd-terraform:ref:refs/heads/main"]
-    }
-  }
-}
-
+// Infra CI Trust Policy
 data "aws_iam_policy_document" "ci_trust" {
   statement {
     sid    = "TrustPolicyForAssumeRole"
@@ -57,11 +32,38 @@ data "aws_iam_policy_document" "ci_trust" {
   }
 }
 
-// CI Permisssions
+// Infra CD Trust Policy
+data "aws_iam_policy_document" "cd_trust" {
+  statement {
+    sid    = "TrustPolicyForAssumeRole"
+    effect = "Allow"
+
+    principals {
+      type        = "Federated"
+      identifiers = [var.oidc_arn]
+    }
+
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringLike"
+      variable = "token.actions.githubusercontent.com:sub"
+      values   = ["repo:Moorthy-M/static-site-cicd-terraform:ref:refs/heads/main"]
+    }
+  }
+}
+
+// Infra CI Permisssions
 data "aws_iam_policy_document" "ci_permission" {
   statement {
     sid = "TerraformStateRead"
-
+    effect = "Allow"
     actions = [
       "s3:GetObject",
       "s3:PutObject",
@@ -100,10 +102,11 @@ data "aws_iam_policy_document" "ci_permission" {
   }
 }
 
-// CD Permissions
+// Infra CD Permissions
 data "aws_iam_policy_document" "cd_permission" {
   statement {
     sid = "TerraformState"
+    effect = "Allow"
 
     actions = [
       "s3:GetObject",
@@ -177,6 +180,40 @@ data "aws_iam_policy_document" "cd_permission" {
       "cloudfront:UntagResource",
       "cloudfront:ListTagsForResource"
     ]
+
+    resources = ["*"]
+  }
+}
+
+// Website CD Permission
+data "aws_iam_policy_document" "site_cd_permission" {
+  statement {
+    sid = "AllowBucketToUploadFiles"
+    effect = "Allow"
+
+    actions = [
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:DeleteObject",
+      "s3:ListBucket"
+    ]
+
+    resources = ["arn:aws:s3:::static-site-cicd-terraform", "arn:aws:s3:::static-site-cicd-terraform/*"]
+  }
+
+  statement {
+    sid = "AllowCloudFrontToInvalidateCache"
+    effect = "Allow"
+
+    actions = [
+      "cloudfront:CreateInvalidation"
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "cloudfront:DistributionId"
+      values = [ var.cdn_distribution_id ]
+    }
 
     resources = ["*"]
   }
@@ -256,6 +293,48 @@ resource "aws_iam_policy" "policy" {
 resource "aws_iam_role_policy_attachment" "cd_role" {
   role       = aws_iam_role.cd_role.name
   policy_arn = aws_iam_policy.policy.arn
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+// Create Website Role for CD
+resource "aws_iam_role" "site_role" {
+  name = "terraform-cd-static-site-files-role"
+  assume_role_policy = data.aws_iam_policy_document.cd_trust.json
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  tags = {
+    Name        = "role-static-site-files-cd"
+    Project     = "static-site-cicd-terraform"
+    Environment = "production"
+  }
+}
+
+// Create Permission Policy to Create S3 and CloudFront
+resource "aws_iam_policy" "site_policy" {
+  name   = "terraform-cd-static-site-files-permission-policy"
+  policy = data.aws_iam_policy_document.site_cd_permission.json
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  tags = {
+    Name        = "policy-static-site-files-cd"
+    Project     = "static-site-cicd-terraform"
+    Environment = "production"
+  }
+}
+
+// Attach Permission Policy to Role
+resource "aws_iam_role_policy_attachment" "site_role_attach" {
+  role       = aws_iam_role.site_role.name
+  policy_arn = aws_iam_policy.site_policy.arn
 
   lifecycle {
     prevent_destroy = true
