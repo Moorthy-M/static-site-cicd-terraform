@@ -142,6 +142,9 @@ data "aws_iam_policy_document" "permission" {
       "s3:PutBucketPolicy",
       "s3:PutBucketPublicAccessBlock",
       "s3:PutBucketVersioning",
+      "s3:PutBucketTagging",
+      "s3:GetBucketTagging",
+      "s3:DeleteBucketTagging",
       "s3:PutEncryptionConfiguration",
       "s3:GetEncryptionConfiguration",
       "s3:GetBucket*",
@@ -178,7 +181,10 @@ data "aws_iam_policy_document" "permission" {
       "cloudfront:List*",
       "cloudfront:CreateOriginAccessControl",
       "cloudfront:GetOriginAccessControl",
-      "cloudfront:UpdateOriginAccessControl"
+      "cloudfront:UpdateOriginAccessControl",
+      "cloudfront:TagResource",
+      "cloudfront:UntagResource",
+      "cloudfront:ListTagsForResource"
     ]
 
     resources = ["*"]
