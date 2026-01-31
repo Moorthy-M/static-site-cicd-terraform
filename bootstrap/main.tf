@@ -118,7 +118,7 @@ data "aws_iam_policy_document" "cd_permission" {
   statement {
     sid       = "CreateStaticSiteBuckets"
     effect    = "Allow"
-    actions   = ["s3:CreateBucket"]
+    actions   = ["s3:CreateBucket", "s3:DeleteBucket"]
     resources = ["*"]
 
     condition {
@@ -137,7 +137,6 @@ data "aws_iam_policy_document" "cd_permission" {
       "s3:PutBucketPublicAccessBlock",
       "s3:PutBucketVersioning",
       "s3:PutBucketTagging",
-      "s3:DeleteBucketTagging",
       "s3:PutEncryptionConfiguration",
       "s3:Get*",
       "s3:ListBucket"

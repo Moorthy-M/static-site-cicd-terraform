@@ -1,0 +1,48 @@
+name: Website CD
+
+on:
+  push: 
+    branches: [main]
+    paths:
+      - site/**
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  Website-Apply:
+    runs-on: ubuntu-latest
+
+    steps:
+      
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+        working-directory: site
+
+      - run: npm run build
+        working-directory: site
+
+      - name: Configure AWS Credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_CD_SITE_BUCKET_ROLE_TO_ASSUME }}
+          aws-region: ap-south-1
+
+      - name: Verify AWS Credentials
+        run: aws sts get-caller-identity
+
+      - name: Upload Files to S3
+        run: aws s3 sync site/dist/ s3://static-site-cicd-terraform --delete
+
+      - name: Invalidate CloudFront
+        run: aws cloudfront create-invalidation \
+             --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+             --paths "/*"
+
+
