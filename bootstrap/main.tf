@@ -2,7 +2,7 @@ locals {
   tf_state_bucket_arn = "arn:aws:s3:::s3-moorthy-terraform-state"
 }
 
-data "aws_iam_policy_document" "trust" {
+data "aws_iam_policy_document" "cd_trust" {
   statement {
     sid    = "TrustPolicyForAssumeRole"
     effect = "Allow"
@@ -23,10 +23,7 @@ data "aws_iam_policy_document" "trust" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values = [
-        "repo:Moorthy-M/static-site-cicd-terraform:pull_request",
-        "repo:Moorthy-M/static-site-cicd-terraform:ref:refs/heads/*"
-      ]
+      values   = ["repo:Moorthy-M/static-site-cicd-terraform:ref:refs/heads/main"]
     }
   }
 }
@@ -52,7 +49,10 @@ data "aws_iam_policy_document" "ci_trust" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:Moorthy-M/static-site-cicd-terraform:ref:refs/heads/main"]
+      values = [
+        "repo:Moorthy-M/static-site-cicd-terraform:pull_request",
+        "repo:Moorthy-M/static-site-cicd-terraform:ref:refs/heads/*"
+      ]
     }
   }
 }
@@ -224,7 +224,7 @@ resource "aws_iam_role_policy_attachment" "cd_role_attach" {
 // Create Role for CD
 resource "aws_iam_role" "cd_role" {
   name               = "terraform-cd-static-site-role"
-  assume_role_policy = data.aws_iam_policy_document.trust.json
+  assume_role_policy = data.aws_iam_policy_document.cd_trust.json
 
   lifecycle {
     prevent_destroy = true
