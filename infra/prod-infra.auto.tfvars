@@ -5,4 +5,5 @@ tags = {
   environment = "production"
 }
 
+// Bucket Name
 bucket_name = "static-site-cicd-terraform"
