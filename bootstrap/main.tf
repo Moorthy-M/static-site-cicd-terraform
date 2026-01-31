@@ -23,6 +23,35 @@ data "aws_iam_policy_document" "trust" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
+      values = [
+        "repo:Moorthy-M/static-site-cicd-terraform:pull_request",
+        "repo:Moorthy-M/static-site-cicd-terraform:ref:refs/heads/*"
+      ]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "ci_trust" {
+  statement {
+    sid    = "TrustPolicyForAssumeRole"
+    effect = "Allow"
+
+    principals {
+      type        = "Federated"
+      identifiers = [var.oidc_arn]
+    }
+
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringLike"
+      variable = "token.actions.githubusercontent.com:sub"
       values   = ["repo:Moorthy-M/static-site-cicd-terraform:ref:refs/heads/main"]
     }
   }
@@ -157,7 +186,7 @@ data "aws_iam_policy_document" "permission" {
 // Create Role for CI
 resource "aws_iam_role" "ci_role" {
   name               = "terraform-ci-static-site-role"
-  assume_role_policy = data.aws_iam_policy_document.trust.json
+  assume_role_policy = data.aws_iam_policy_document.ci_trust.json
 
   lifecycle {
     prevent_destroy = true
