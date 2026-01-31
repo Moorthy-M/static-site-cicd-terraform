@@ -28,6 +28,54 @@ data "aws_iam_policy_document" "trust" {
   }
 }
 
+// CI Permisssions
+data "aws_iam_policy_document" "ci_permission" {
+  statement {
+    sid = "TerraformStateRead"
+
+    actions = [
+      "s3:GetObject",
+      "s3:ListBucket"
+    ]
+
+    resources = [local.tf_state_bucket_arn, "${local.tf_state_bucket_arn}/*"]
+  }
+
+  statement {
+    sid    = "S3ReadOnly"
+    effect = "Allow"
+
+    actions = [
+      "s3:GetBucketPolicy",
+      "s3:GetBucketAcl",
+      "s3:GetBucketVersioning",
+      "s3:GetBucketPublicAccessBlock",
+      "s3:GetBucketWebsite",
+      "s3:ListBucket"
+    ]
+
+    resources = [
+      "arn:aws:s3:::static-site-*"
+    ]
+  }
+
+  statement {
+    sid    = "CloudFrontReadOnly"
+    effect = "Allow"
+
+    actions = [
+      "cloudfront:GetDistribution",
+      "cloudfront:GetDistributionConfig",
+      "cloudfront:ListDistributions",
+      "cloudfront:GetOriginAccessControl",
+      "cloudfront:ListOriginAccessControls"
+    ]
+
+    resources = ["*"]
+  }
+}
+
+// CD Permissions
 data "aws_iam_policy_document" "permission" {
   statement {
     sid = "TerraformState"
@@ -95,13 +143,52 @@ data "aws_iam_policy_document" "permission" {
     actions = [
       "cloudfront:CreateDistribution",
       "cloudfront:UpdateDistribution",
-      "cloudfront:GetDistribution",
+      "cloudfront:Get*",
+      "cloudfront:List*",
       "cloudfront:CreateOriginAccessControl",
       "cloudfront:GetOriginAccessControl",
       "cloudfront:UpdateOriginAccessControl"
     ]
 
     resources = ["*"]
+  }
+}
+
+// Create Role for CI
+resource "aws_iam_role" "ci_role" {
+  name               = "terraform-ci-static-site-role"
+  assume_role_policy = data.aws_iam_policy_document.trust.json
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  tags = {
+    Name        = "role-static-site-ci"
+    Project     = "static-site-cicd-terraform"
+    Environment = "production"
+  }
+}
+
+// Create Permission Policy for CI
+resource "aws_iam_policy" "ci_policy" {
+  name   = "terraform-ci-static-site-permission-policy"
+  policy = data.aws_iam_policy_document.ci_permission.json
+
+  tags = {
+    Name        = "policy-static-site-ci"
+    Project     = "static-site-cicd-terraform"
+    Environment = "production"
+  }
+}
+
+//Attach Permission Policy to Role
+resource "aws_iam_role_policy_attachment" "cd_role_attach" {
+  role       = aws_iam_role.ci_role.name
+  policy_arn = aws_iam_policy.ci_policy.arn
+
+  lifecycle {
+    prevent_destroy = true
   }
 }
 
