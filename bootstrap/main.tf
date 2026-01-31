@@ -64,6 +64,8 @@ data "aws_iam_policy_document" "ci_permission" {
 
     actions = [
       "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject",
       "s3:ListBucket"
     ]
 
