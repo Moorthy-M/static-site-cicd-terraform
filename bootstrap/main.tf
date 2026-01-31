@@ -77,11 +77,7 @@ data "aws_iam_policy_document" "ci_permission" {
     effect = "Allow"
 
     actions = [
-      "s3:GetBucketPolicy",
-      "s3:GetBucketAcl",
-      "s3:GetBucketVersioning",
-      "s3:GetBucketPublicAccessBlock",
-      "s3:GetBucketWebsite",
+      "s3:GetBucket*",
       "s3:ListBucket"
     ]
 
@@ -107,7 +103,7 @@ data "aws_iam_policy_document" "ci_permission" {
 }
 
 // CD Permissions
-data "aws_iam_policy_document" "permission" {
+data "aws_iam_policy_document" "cd_permission" {
   statement {
     sid = "TerraformState"
 
@@ -142,6 +138,9 @@ data "aws_iam_policy_document" "permission" {
       "s3:PutBucketPolicy",
       "s3:PutBucketPublicAccessBlock",
       "s3:PutBucketVersioning",
+      "s3:PutBucketTagging",
+      "s3:GetBucketTagging",
+      "s3:DeleteBucketTagging",
       "s3:PutEncryptionConfiguration",
       "s3:GetEncryptionConfiguration",
       "s3:GetBucket*",
@@ -178,7 +177,10 @@ data "aws_iam_policy_document" "permission" {
       "cloudfront:List*",
       "cloudfront:CreateOriginAccessControl",
       "cloudfront:GetOriginAccessControl",
-      "cloudfront:UpdateOriginAccessControl"
+      "cloudfront:UpdateOriginAccessControl",
+      "cloudfront:TagResource",
+      "cloudfront:UntagResource",
+      "cloudfront:ListTagsForResource"
     ]
 
     resources = ["*"]
@@ -242,7 +244,7 @@ resource "aws_iam_role" "cd_role" {
 // Create Permission Policy to Create S3 and CloudFront
 resource "aws_iam_policy" "policy" {
   name   = "terraform-cd-static-site-permission-policy"
-  policy = data.aws_iam_policy_document.permission.json
+  policy = data.aws_iam_policy_document.cd_permission.json
 
   lifecycle {
     prevent_destroy = true
