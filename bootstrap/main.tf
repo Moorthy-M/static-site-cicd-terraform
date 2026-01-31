@@ -77,7 +77,7 @@ data "aws_iam_policy_document" "ci_permission" {
     effect = "Allow"
 
     actions = [
-      "s3:GetBucket*",
+      "s3:Get*",
       "s3:ListBucket"
     ]
 
@@ -91,10 +91,8 @@ data "aws_iam_policy_document" "ci_permission" {
     effect = "Allow"
 
     actions = [
-      "cloudfront:GetDistribution",
-      "cloudfront:GetDistributionConfig",
+      "cloudfront:Get*",
       "cloudfront:ListDistributions",
-      "cloudfront:GetOriginAccessControl",
       "cloudfront:ListOriginAccessControls"
     ]
 
@@ -139,11 +137,9 @@ data "aws_iam_policy_document" "cd_permission" {
       "s3:PutBucketPublicAccessBlock",
       "s3:PutBucketVersioning",
       "s3:PutBucketTagging",
-      "s3:GetBucketTagging",
       "s3:DeleteBucketTagging",
       "s3:PutEncryptionConfiguration",
-      "s3:GetEncryptionConfiguration",
-      "s3:GetBucket*",
+      "s3:Get*",
       "s3:ListBucket"
     ]
 
