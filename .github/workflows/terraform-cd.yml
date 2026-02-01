@@ -10,6 +10,9 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  TF_VAR_oidc_arn: ${{ secrets.AWS_OIDC_PROVIDER_ARN}}
+  
 jobs: 
   apply:
     runs-on: ubuntu-latest
