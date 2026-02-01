@@ -2,32 +2,7 @@ locals {
   tf_state_bucket_arn = "arn:aws:s3:::s3-moorthy-terraform-state"
 }
 
-data "aws_iam_policy_document" "cd_trust" {
-  statement {
-    sid    = "TrustPolicyForAssumeRole"
-    effect = "Allow"
-
-    principals {
-      type        = "Federated"
-      identifiers = [var.oidc_arn]
-    }
-
-    actions = ["sts:AssumeRoleWithWebIdentity"]
-
-    condition {
-      test     = "StringEquals"
-      variable = "token.actions.githubusercontent.com:aud"
-      values   = ["sts.amazonaws.com"]
-    }
-
-    condition {
-      test     = "StringLike"
-      variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:Moorthy-M/static-site-cicd-terraform:ref:refs/heads/main"]
-    }
-  }
-}
-
+// Infra CI Trust Policy
 data "aws_iam_policy_document" "ci_trust" {
   statement {
     sid    = "TrustPolicyForAssumeRole"
@@ -57,11 +32,38 @@ data "aws_iam_policy_document" "ci_trust" {
   }
 }
 
-// CI Permisssions
+// Infra CD Trust Policy
+data "aws_iam_policy_document" "cd_trust" {
+  statement {
+    sid    = "TrustPolicyForAssumeRole"
+    effect = "Allow"
+
+    principals {
+      type        = "Federated"
+      identifiers = [var.oidc_arn]
+    }
+
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringLike"
+      variable = "token.actions.githubusercontent.com:sub"
+      values   = ["repo:Moorthy-M/static-site-cicd-terraform:ref:refs/heads/main"]
+    }
+  }
+}
+
+// Infra CI Permisssions
 data "aws_iam_policy_document" "ci_permission" {
   statement {
-    sid = "TerraformStateRead"
-
+    sid    = "TerraformStateRead"
+    effect = "Allow"
     actions = [
       "s3:GetObject",
       "s3:PutObject",
@@ -93,17 +95,19 @@ data "aws_iam_policy_document" "ci_permission" {
     actions = [
       "cloudfront:Get*",
       "cloudfront:ListDistributions",
-      "cloudfront:ListOriginAccessControls"
+      "cloudfront:ListOriginAccessControls",
+      "cloudfront:ListTagsForResource"
     ]
 
     resources = ["*"]
   }
 }
 
-// CD Permissions
+// Infra CD Permissions
 data "aws_iam_policy_document" "cd_permission" {
   statement {
-    sid = "TerraformState"
+    sid    = "TerraformState"
+    effect = "Allow"
 
     actions = [
       "s3:GetObject",
@@ -118,7 +122,7 @@ data "aws_iam_policy_document" "cd_permission" {
   statement {
     sid       = "CreateStaticSiteBuckets"
     effect    = "Allow"
-    actions   = ["s3:CreateBucket"]
+    actions   = ["s3:CreateBucket", "s3:DeleteBucket"]
     resources = ["*"]
 
     condition {
@@ -137,7 +141,6 @@ data "aws_iam_policy_document" "cd_permission" {
       "s3:PutBucketPublicAccessBlock",
       "s3:PutBucketVersioning",
       "s3:PutBucketTagging",
-      "s3:DeleteBucketTagging",
       "s3:PutEncryptionConfiguration",
       "s3:Get*",
       "s3:ListBucket"

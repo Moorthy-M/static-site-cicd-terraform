@@ -128,3 +128,106 @@ resource "aws_s3_bucket_policy" "oac_policy" {
   bucket = aws_s3_bucket.static_site.id
   policy = data.aws_iam_policy_document.policy.json
 }
+
+// Infra CD Trust Policy
+data "aws_iam_policy_document" "cd_trust" {
+  statement {
+    sid    = "TrustPolicyForAssumeRole"
+    effect = "Allow"
+
+    principals {
+      type        = "Federated"
+      identifiers = [var.oidc_arn]
+    }
+
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringLike"
+      variable = "token.actions.githubusercontent.com:sub"
+      values   = ["repo:Moorthy-M/static-site-cicd-terraform:ref:refs/heads/main"]
+    }
+  }
+}
+
+// Website CD Permission
+data "aws_iam_policy_document" "site_cd_permission" {
+  statement {
+    sid    = "AllowBucketToUploadFiles"
+    effect = "Allow"
+
+    actions = [
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:DeleteObject",
+      "s3:ListBucket"
+    ]
+
+    resources = ["arn:aws:s3:::static-site-cicd-terraform", "arn:aws:s3:::static-site-cicd-terraform/*"]
+  }
+
+  statement {
+    sid    = "AllowCloudFrontToInvalidateCache"
+    effect = "Allow"
+
+    actions = [
+      "cloudfront:CreateInvalidation"
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "cloudfront:DistributionId"
+      values   = [aws_cloudfront_distribution.static_dis.id]
+    }
+
+    resources = ["*"]
+  }
+}
+
+// Create Website Role for CD
+resource "aws_iam_role" "site_role" {
+  name               = "terraform-cd-static-site-files-role"
+  assume_role_policy = data.aws_iam_policy_document.cd_trust.json
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  tags = {
+    Name        = "role-static-site-files-cd"
+    Project     = "static-site-cicd-terraform"
+    Environment = "production"
+  }
+}
+
+// Create Permission Policy to Upload Files and Cache Invalidation
+resource "aws_iam_policy" "site_policy" {
+  name   = "terraform-cd-static-site-files-permission-policy"
+  policy = data.aws_iam_policy_document.site_cd_permission.json
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  tags = {
+    Name        = "policy-static-site-files-cd"
+    Project     = "static-site-cicd-terraform"
+    Environment = "production"
+  }
+}
+
+// Attach Permission Policy to Role
+resource "aws_iam_role_policy_attachment" "site_role_attach" {
+  role       = aws_iam_role.site_role.name
+  policy_arn = aws_iam_policy.site_policy.arn
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
