@@ -95,7 +95,8 @@ data "aws_iam_policy_document" "ci_permission" {
     actions = [
       "cloudfront:Get*",
       "cloudfront:ListDistributions",
-      "cloudfront:ListOriginAccessControls"
+      "cloudfront:ListOriginAccessControls",
+      "cloudfront:ListTagsForResource"
     ]
 
     resources = ["*"]
