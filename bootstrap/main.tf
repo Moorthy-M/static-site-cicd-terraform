@@ -101,6 +101,29 @@ data "aws_iam_policy_document" "ci_permission" {
 
     resources = ["*"]
   }
+
+  statement {
+    sid    = "ReadTerraformRoles"
+    effect = "Allow"
+    actions = [
+      "iam:GetRole",
+      "iam:ListRolePolicies",
+      "iam:ListAttachedRolePolicies"
+    ]
+
+    resources = ["arn:aws:iam::*:role/terraform-*"]
+  }
+
+  statement {
+    sid    = "ReadTerraformPolicies"
+    effect = "Allow"
+    actions = [
+      "iam:GetPolicy",
+      "iam:GetPolicyVersion"
+    ]
+
+    resources = ["arn:aws:iam::*:policy/terraform-*"]
+  }
 }
 
 // Infra CD Permissions
@@ -183,6 +206,53 @@ data "aws_iam_policy_document" "cd_permission" {
     ]
 
     resources = ["*"]
+  }
+
+  statement {
+    sid    = "CreateRole"
+    effect = "Allow"
+
+    actions = [
+      "iam:CreateRole",
+      "iam:GetRole",
+      "iam:UpdateAssumeRolePolicy",
+      "iam:TagRole",
+      "iam:UntagRole"
+    ]
+
+    resources = ["arn:aws:iam::*:role/terraform-*"]
+  }
+
+  statement {
+    sid    = "CreatePolicy"
+    effect = "Allow"
+
+    actions = [
+      "iam:CreatePolicy",
+      "iam:GetPolicy",
+      "iam:GetPolicyVersion",
+      "iam:CreatePolicyVersion",
+      "iam:DeletePolicyVersion",
+      "iam:TagPolicy",
+      "iam:UntagPolicy",
+      "iam:ListPolicyVersions"
+    ]
+
+    resources = ["arn:aws:iam::*:policy/terraform-*"]
+  }
+
+  statement {
+    sid    = "AttachAndDetachPolicies"
+    effect = "Allow"
+
+    actions = [
+      "iam:AttachRolePolicy",
+      "iam:DetachRolePolicy",
+      "iam:ListAttachedRolePolicies",
+      "iam:ListRolePolicies"
+    ]
+
+    resources = ["arn:aws:iam::*:role/terraform-*"]
   }
 }
 
