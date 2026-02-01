@@ -180,12 +180,6 @@ data "aws_iam_policy_document" "site_cd_permission" {
       "cloudfront:CreateInvalidation"
     ]
 
-    condition {
-      test     = "StringEquals"
-      variable = "cloudfront:DistributionId"
-      values   = [aws_cloudfront_distribution.static_dis.id]
-    }
-
     resources = ["*"]
   }
 }
