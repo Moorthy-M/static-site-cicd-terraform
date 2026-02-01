@@ -62,7 +62,7 @@ data "aws_iam_policy_document" "cd_trust" {
 // Infra CI Permisssions
 data "aws_iam_policy_document" "ci_permission" {
   statement {
-    sid = "TerraformStateRead"
+    sid    = "TerraformStateRead"
     effect = "Allow"
     actions = [
       "s3:GetObject",
@@ -105,7 +105,7 @@ data "aws_iam_policy_document" "ci_permission" {
 // Infra CD Permissions
 data "aws_iam_policy_document" "cd_permission" {
   statement {
-    sid = "TerraformState"
+    sid    = "TerraformState"
     effect = "Allow"
 
     actions = [
